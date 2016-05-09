@@ -40,7 +40,7 @@ namespace AForgetest
             {
                 camListBox.Items.Add(fi.Name);
             }
-            if(videoDevices != null)
+            if(videoDevices.Count > 0)
             {
                 camListBox.SelectedIndex = 0;
                 webcamSource = new VideoCaptureDevice(videoDevices[camListBox.SelectedIndex].MonikerString);
@@ -74,7 +74,6 @@ namespace AForgetest
                 Image pic = (Image)binaryFM.Deserialize(ms);
                 pictureBox.Image = pic;
             }
-            
         }
         int cnt = 0;
         void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
@@ -93,10 +92,11 @@ namespace AForgetest
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if(webcamSource != null)
+                webcamSource.Stop();
+            recvThread.Abort();
             info.local_Socket.Close();
             localSocket.Close();
-            recvThread.Interrupt();
-            webcamSource.Stop();
         }
 
         private void modeListBox_DrawItem(object sender, DrawItemEventArgs e)
