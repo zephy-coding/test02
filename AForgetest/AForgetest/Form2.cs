@@ -18,7 +18,10 @@ namespace AForgetest
         {
             try
             {
-                info.remoteEP = new IPEndPoint(IPAddress.Parse(iptextBox.Text), info.recvPORT);
+                if (info.remoteEP == null)
+                    info.remoteEP = new IPEndPoint(IPAddress.Parse(iptextBox.Text), info.recvPORT);
+                else
+                    info.remoteEP.Address = IPAddress.Parse(iptextBox.Text);
                 Close();
             }
             catch(FormatException ee)

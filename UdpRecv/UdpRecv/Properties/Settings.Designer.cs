@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FFmpegPractice.Properties
+namespace UdpRecv.Properties
 {
 
 
