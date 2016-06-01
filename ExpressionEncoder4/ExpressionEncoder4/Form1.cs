@@ -44,22 +44,17 @@ namespace ExpressionEncoder4
         private void btnStart_Click(object sender, EventArgs e)
         {
             LDS = LJ.AddDeviceSource(webcam, voiceR);
-            //LDS.PreviewWindow = new PreviewWindow(new System.Runtime.InteropServices.HandleRef(panel1, panel1.Handle));
-            LJ.ApplyPreset(LivePresets.VC1256kDSL16x9);
+            LDS.PreviewWindow = new PreviewWindow(new System.Runtime.InteropServices.HandleRef(panel1, panel1.Handle));
+            LJ.ApplyPreset(LivePresets.VC1256kDSL4x3);
 
-            LJ.AcquireCredentials += new EventHandler<AcquireCredentialsEventArgs>(lj_acq);
+            //LJ.AcquireCredentials += new EventHandler<AcquireCredentialsEventArgs>(lj_acq);
             testBox.Text = LJ.OutputFormat.VideoProfile.Size.ToString();
-            PushBroadcastPublishFormat push = new PushBroadcastPublishFormat();
-            push.PublishingPoint = new Uri("http://192.168.0.5:8080");
-            myID = "songtj";
-            myPW = pullPW("dlatlqlqjs");
-            push.UserName = myID;
-            push.Password = myPW;
-            //PullBroadcastPublishFormat format = new PullBroadcastPublishFormat();
-            //format.BroadcastPort = 8080;
-            //format.MaximumNumberOfConnections = 1;
-            LJ.PublishFormats.Add(push);
-            LJ.PreConnectPublishingPoint();
+            
+            PullBroadcastPublishFormat format = new PullBroadcastPublishFormat();
+            format.BroadcastPort = 8080;
+            format.MaximumNumberOfConnections = 1;
+            LJ.PublishFormats.Add(format);
+            //LJ.PreConnectPublishingPoint();
             LJ.ActivateSource(LDS);
             
             LJ.StartEncoding();

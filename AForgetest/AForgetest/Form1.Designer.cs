@@ -136,7 +136,7 @@
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnPhoto;
         private System.Windows.Forms.Label localipLabel;
-        private System.Windows.Forms.Button btnConnect;
+        public System.Windows.Forms.Button btnConnect;
     }
 }
 

@@ -13,7 +13,7 @@ using System.Threading;
 using System.Windows.Forms;
 using AForge.Video.DirectShow;
 using AForge.Video;
-using AForgetest;
+
 
 namespace AForgetest
 {
@@ -26,12 +26,13 @@ namespace AForgetest
         ToolTip toolTip1 = new ToolTip();
         BinaryFormatter binaryFM = new BinaryFormatter();
         Thread recvThread;
+        Thread tcpThread;
         UdpClient localSocket = new UdpClient(info.recvPORT);
+        TcpListener tcpL = new TcpListener(new IPEndPoint(0, info.respPORT));
         public Form1()
         {
             InitializeComponent();
         }
-
         private void Form1_Load(object sender, EventArgs e)
         {
             localipLabel.Text += GetLocalIPAddress();
@@ -57,10 +58,16 @@ namespace AForgetest
                 modeListBox.DrawItem += modeListBox_DrawItem;
                 modeListBox.DropDownClosed += modeListBox_DropDownClosed;
             }
-            
             recvThread = new Thread(new ThreadStart(recvPacket));
             recvThread.Start();
-
+            tcpThread = new Thread(new ThreadStart(tcpListen));
+            tcpThread.Start();
+        }
+        void tcpListen()
+        {
+            tcpL.Start();
+            tcpL.AcceptTcpClient();
+            MessageBox.Show("클라이언트 접속예정");
         }
         void recvPacket()
         {
@@ -87,16 +94,18 @@ namespace AForgetest
             ms.Position = 0;
             byte[] buff = new byte[ms.Length];
             ms.Read(buff, 0, buff.Length);
-            cnt += info.local_Socket.Send(buff, buff.Length, info.remoteEP);
+            cnt += info.sending_Socket.Send(buff, buff.Length, info.remoteEP);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if(webcamSource != null)
                 webcamSource.Stop();
-            recvThread.Abort();
-            info.local_Socket.Close();
             localSocket.Close();
+            recvThread.Abort();
+            tcpL.Stop();
+            tcpThread.Abort();
+            info.sending_Socket.Close();
         }
 
         private void modeListBox_DrawItem(object sender, DrawItemEventArgs e)
@@ -168,7 +177,7 @@ namespace AForgetest
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            Form2 connect_Form = new Form2();
+            Form2 connect_Form = new Form2(this);
             connect_Form.Show();
         }
     }
