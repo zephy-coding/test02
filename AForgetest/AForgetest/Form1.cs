@@ -19,6 +19,7 @@ namespace AForgetest
 {
     public partial class Form1 : Form
     {
+        double recvPackets = 0;
         const int form_width = 480;
         const int form_height = 440;
         FilterInfoCollection videoDevices;
@@ -29,6 +30,7 @@ namespace AForgetest
         Thread tcpThread;
         UdpClient localSocket = new UdpClient(info.recvPORT);
         TcpListener tcpL = new TcpListener(new IPEndPoint(0, info.respPORT));
+
         public Form1()
         {
             InitializeComponent();
@@ -75,12 +77,28 @@ namespace AForgetest
             while (true)
             {
                 byte[] buff = localSocket.Receive(ref remoteEPrecv);
+                recvPackets += buff.Length;
                 MemoryStream ms = new MemoryStream();
                 ms.Write(buff, 0, buff.Length);
                 ms.Position = 0;
                 Image pic = (Image)binaryFM.Deserialize(ms);
                 pictureBox.Image = pic;
+                if(changer_trigger == false)
+                    formSize_changer();
             }
+        }
+        bool changer_trigger = false;
+        void formSize_changer()
+        {
+            if ((pictureBox.Image.Width + 40) > form_width)
+            {
+                this.Width = pictureBox.Image.Width + 40;
+                this.Height = pictureBox.Image.Height + 180;
+                this.pictureBox.Width = pictureBox.Image.Width;
+                this.pictureBox.Height = pictureBox.Image.Height;
+                this.pictureBox.Left = (this.Width - this.pictureBox.Width - 16) / 2;
+            }
+            changer_trigger = true;
         }
         int cnt = 0;
         void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
@@ -136,21 +154,15 @@ namespace AForgetest
                 pictureBox.Height = 250;
                 isRunning = false;
                 btnStart.Text = "Start";
+                changer_trigger = false;
+                S_timer.Stop();
                 return;
             }
             webcamSource.VideoResolution = webcamSource.VideoCapabilities[modeListBox.SelectedIndex];
-            
-            if((webcamSource.VideoResolution.FrameSize.Width + 40) > form_width)
-            {
-                this.Width = webcamSource.VideoResolution.FrameSize.Width + 40;
-                this.Height = webcamSource.VideoResolution.FrameSize.Height + 180;
-                this.pictureBox.Width = webcamSource.VideoResolution.FrameSize.Width;
-                this.pictureBox.Height = webcamSource.VideoResolution.FrameSize.Height;
-                this.pictureBox.Left = (this.Width - this.pictureBox.Width - 16) / 2;
-            }
             webcamSource.Start();
             isRunning = true;
             btnStart.Text = "Stop";
+            S_timer.Start();
         }
 
         private void btnPhoto_Click(object sender, EventArgs e)
@@ -179,6 +191,11 @@ namespace AForgetest
         {
             Form2 connect_Form = new Form2(this);
             connect_Form.Show();
+        }
+
+        private void S_timer_Tick(object sender, EventArgs e)
+        {
+            speedLabel.Text = Math.Round(recvPackets / 1024, 2).ToString() + " Mbyte/s";
         }
     }
 }

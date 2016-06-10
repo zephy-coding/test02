@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace AForgeVision.Properties
+namespace HttpTest01.Properties
 {
 
 

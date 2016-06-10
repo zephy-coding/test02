@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.camListBox = new System.Windows.Forms.ComboBox();
             this.modeListBox = new System.Windows.Forms.ComboBox();
             this.pictureBox = new System.Windows.Forms.PictureBox();
@@ -35,6 +36,8 @@
             this.btnPhoto = new System.Windows.Forms.Button();
             this.localipLabel = new System.Windows.Forms.Label();
             this.btnConnect = new System.Windows.Forms.Button();
+            this.speedLabel = new System.Windows.Forms.Label();
+            this.S_timer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -106,11 +109,26 @@
             this.btnConnect.UseVisualStyleBackColor = true;
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
+            // speedLabel
+            // 
+            this.speedLabel.AutoSize = true;
+            this.speedLabel.Location = new System.Drawing.Point(25, 100);
+            this.speedLabel.Name = "speedLabel";
+            this.speedLabel.Size = new System.Drawing.Size(57, 12);
+            this.speedLabel.TabIndex = 7;
+            this.speedLabel.Text = " mbyte/s";
+            // 
+            // S_timer
+            // 
+            this.S_timer.Interval = 1000;
+            this.S_timer.Tick += new System.EventHandler(this.S_timer_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(464, 401);
+            this.Controls.Add(this.speedLabel);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.localipLabel);
             this.Controls.Add(this.btnPhoto);
@@ -137,6 +155,8 @@
         private System.Windows.Forms.Button btnPhoto;
         private System.Windows.Forms.Label localipLabel;
         public System.Windows.Forms.Button btnConnect;
+        private System.Windows.Forms.Label speedLabel;
+        private System.Windows.Forms.Timer S_timer;
     }
 }
 
