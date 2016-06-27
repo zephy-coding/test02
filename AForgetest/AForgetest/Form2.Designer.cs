@@ -37,7 +37,7 @@
             this.btnAsk.Location = new System.Drawing.Point(197, 26);
             this.btnAsk.Name = "btnAsk";
             this.btnAsk.Size = new System.Drawing.Size(75, 23);
-            this.btnAsk.TabIndex = 0;
+            this.btnAsk.TabIndex = 1;
             this.btnAsk.Text = "Ask";
             this.btnAsk.UseVisualStyleBackColor = true;
             this.btnAsk.Click += new System.EventHandler(this.btnAsk_Click);
@@ -47,7 +47,7 @@
             this.iptextBox.Location = new System.Drawing.Point(21, 27);
             this.iptextBox.Name = "iptextBox";
             this.iptextBox.Size = new System.Drawing.Size(160, 21);
-            this.iptextBox.TabIndex = 1;
+            this.iptextBox.TabIndex = 0;
             // 
             // Form2
             // 
@@ -58,6 +58,7 @@
             this.Controls.Add(this.btnAsk);
             this.Name = "Form2";
             this.Text = "Form2";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form2_FormClosed);
             this.ResumeLayout(false);
             this.PerformLayout();
 

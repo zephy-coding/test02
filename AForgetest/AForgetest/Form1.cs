@@ -19,7 +19,9 @@ namespace AForgetest
 {
     public partial class Form1 : Form
     {
-        double recvPackets = 0;
+        delegate void SetVoidCallback();
+        double sendedPackets = 0;
+        double recvedPackets = 0;
         const int form_width = 480;
         const int form_height = 440;
         FilterInfoCollection videoDevices;
@@ -38,12 +40,22 @@ namespace AForgetest
         private void Form1_Load(object sender, EventArgs e)
         {
             localipLabel.Text += GetLocalIPAddress();
+            createCamComboboxes();
+            webcamSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
+            recvThread = new Thread(new ThreadStart(recvPacket));
+            recvThread.Start();
+            tcpThread = new Thread(new ThreadStart(tcpListen));
+            tcpThread.Start();
+            S_timer.Start();
+        }
+        void createCamComboboxes()
+        {
             videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             foreach (FilterInfo fi in videoDevices)
             {
                 camListBox.Items.Add(fi.Name);
             }
-            if(videoDevices.Count > 0)
+            if (videoDevices.Count > 0)
             {
                 camListBox.SelectedIndex = 0;
                 webcamSource = new VideoCaptureDevice(videoDevices[camListBox.SelectedIndex].MonikerString);
@@ -52,18 +64,12 @@ namespace AForgetest
                     modeListBox.Items.Add(capability.FrameSize.ToString() + ":" + capability.MaximumFrameRate.ToString() + ":" + capability.BitCount.ToString());
                 }
                 modeListBox.SelectedIndex = 0;
-                webcamSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
-
-
+                
                 //mode콤보 툴팁만들기
-                modeListBox.DrawMode = DrawMode.OwnerDrawFixed;
-                modeListBox.DrawItem += modeListBox_DrawItem;
-                modeListBox.DropDownClosed += modeListBox_DropDownClosed;
+                //modeListBox.DrawMode = DrawMode.OwnerDrawFixed;
+                //modeListBox.DrawItem += modeListBox_DrawItem;
+                //modeListBox.DropDownClosed += modeListBox_DropDownClosed;
             }
-            recvThread = new Thread(new ThreadStart(recvPacket));
-            recvThread.Start();
-            tcpThread = new Thread(new ThreadStart(tcpListen));
-            tcpThread.Start();
         }
         void tcpListen()
         {
@@ -77,26 +83,56 @@ namespace AForgetest
             while (true)
             {
                 byte[] buff = localSocket.Receive(ref remoteEPrecv);
-                recvPackets += buff.Length;
-                MemoryStream ms = new MemoryStream();
-                ms.Write(buff, 0, buff.Length);
-                ms.Position = 0;
-                Image pic = (Image)binaryFM.Deserialize(ms);
-                pictureBox.Image = pic;
-                if(changer_trigger == false)
-                    formSize_changer();
+                if((buff.Length == 1) && (buff[0] == 127))
+                {
+                    pictureBox.Image = null;
+                    this.Width = form_width;
+                    this.Height = form_height;
+                    this.pictureBox.Width = 417;
+                    this.pictureBox.Height = 250;
+                    this.pictureBox.Left = 24;
+                    changer_trigger = false;
+                }
+                else
+                {
+                    recvedPackets += (double)buff.Length;
+                    MemoryStream ms = new MemoryStream();
+                    ms.Write(buff, 0, buff.Length);
+                    ms.Position = 0;
+                    Image pic = (Image)binaryFM.Deserialize(ms);
+                    pictureBox.Image = pic;
+                    if (changer_trigger == false)
+                    {
+                        formSize_changer();
+                    }
+                }
             }
+        }
+        void stopMsgSend()
+        {
+            byte[] buff = new byte[1];
+            buff[0] = 127;
+            info.sending_Socket.Send(buff, buff.Length, info.remoteEP);
         }
         bool changer_trigger = false;
         void formSize_changer()
         {
-            if ((pictureBox.Image.Width + 40) > form_width)
+            if (pictureBox.InvokeRequired)
             {
-                this.Width = pictureBox.Image.Width + 40;
-                this.Height = pictureBox.Image.Height + 180;
-                this.pictureBox.Width = pictureBox.Image.Width;
-                this.pictureBox.Height = pictureBox.Image.Height;
-                this.pictureBox.Left = (this.Width - this.pictureBox.Width - 16) / 2;
+                SetVoidCallback d = new SetVoidCallback(formSize_changer);
+                Invoke(d);
+            }
+            else
+            {
+                if ((pictureBox.Image.Width + 40) > form_width)
+                {
+
+                    this.Width = pictureBox.Image.Width + 40;
+                    this.Height = pictureBox.Image.Height + 180;
+                    this.pictureBox.Width = pictureBox.Image.Width;
+                    this.pictureBox.Height = pictureBox.Image.Height;
+                    this.pictureBox.Left = (this.Width - this.pictureBox.Width - 16) / 2;
+                }
             }
             changer_trigger = true;
         }
@@ -112,6 +148,7 @@ namespace AForgetest
             ms.Position = 0;
             byte[] buff = new byte[ms.Length];
             ms.Read(buff, 0, buff.Length);
+            sendedPackets += (double)buff.Length;
             cnt += info.sending_Socket.Send(buff, buff.Length, info.remoteEP);
         }
 
@@ -155,25 +192,15 @@ namespace AForgetest
                 isRunning = false;
                 btnStart.Text = "Start";
                 changer_trigger = false;
-                S_timer.Stop();
+                stopMsgSend();
                 return;
             }
             webcamSource.VideoResolution = webcamSource.VideoCapabilities[modeListBox.SelectedIndex];
             webcamSource.Start();
             isRunning = true;
             btnStart.Text = "Stop";
-            S_timer.Start();
         }
 
-        private void btnPhoto_Click(object sender, EventArgs e)
-        {
-            if (pictureBox.Image == null)
-                return;
-            MemoryStream ms = new MemoryStream();
-            pictureBox.Image.Save(ms, ImageFormat.Jpeg);
-            this.Text = ms.Length.ToString();
-            
-        }
         public string GetLocalIPAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -186,16 +213,23 @@ namespace AForgetest
             }
             throw new Exception("Local IP Address Not Found!");
         }
-
+        public bool isForm2_opened = false;
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            Form2 connect_Form = new Form2(this);
-            connect_Form.Show();
+            if(isForm2_opened == false)
+            { 
+                Form2 connect_Form = new Form2(this);
+                connect_Form.Show();
+                isForm2_opened = true;
+            }
         }
-
+        
         private void S_timer_Tick(object sender, EventArgs e)
         {
-            speedLabel.Text = Math.Round(recvPackets / 1024, 2).ToString() + " Mbyte/s";
+            speedLabel.Text = "Sending Speed : " + Math.Round((sendedPackets / 1024.0),2).ToString() + " kbyte/s ";
+            speedLabel.Text += "Receiving Speed : " + Math.Round((recvedPackets / 1024.0), 2).ToString() + " kbyte/s";
+            sendedPackets = 0;
+            recvedPackets = 0;
         }
     }
 }

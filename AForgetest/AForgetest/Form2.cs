@@ -50,6 +50,11 @@ namespace AForgetest
             MainForm = f1;
             InitializeComponent();
         }
+
+        private void Form2_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            MainForm.isForm2_opened = false;
+        }
     }
     public class info
     {

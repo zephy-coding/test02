@@ -33,11 +33,12 @@
             this.modeListBox = new System.Windows.Forms.ComboBox();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.btnStart = new System.Windows.Forms.Button();
-            this.btnPhoto = new System.Windows.Forms.Button();
             this.localipLabel = new System.Windows.Forms.Label();
             this.btnConnect = new System.Windows.Forms.Button();
             this.speedLabel = new System.Windows.Forms.Label();
             this.S_timer = new System.Windows.Forms.Timer(this.components);
+            this.micListBox = new System.Windows.Forms.ComboBox();
+            this.soundCodecBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,7 +48,7 @@
             this.camListBox.FormattingEnabled = true;
             this.camListBox.Location = new System.Drawing.Point(24, 42);
             this.camListBox.Name = "camListBox";
-            this.camListBox.Size = new System.Drawing.Size(258, 20);
+            this.camListBox.Size = new System.Drawing.Size(200, 20);
             this.camListBox.TabIndex = 0;
             // 
             // modeListBox
@@ -56,14 +57,15 @@
             this.modeListBox.FormattingEnabled = true;
             this.modeListBox.Location = new System.Drawing.Point(24, 68);
             this.modeListBox.Name = "modeListBox";
-            this.modeListBox.Size = new System.Drawing.Size(258, 20);
+            this.modeListBox.Size = new System.Drawing.Size(200, 20);
             this.modeListBox.TabIndex = 1;
             this.modeListBox.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.modeListBox_DrawItem);
             this.modeListBox.DropDownClosed += new System.EventHandler(this.modeListBox_DropDownClosed);
             // 
             // pictureBox
             // 
-            this.pictureBox.Location = new System.Drawing.Point(24, 127);
+            this.pictureBox.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pictureBox.Location = new System.Drawing.Point(24, 128);
             this.pictureBox.Name = "pictureBox";
             this.pictureBox.Size = new System.Drawing.Size(417, 250);
             this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -72,23 +74,13 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(339, 39);
+            this.btnStart.Location = new System.Drawing.Point(367, 14);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(75, 23);
             this.btnStart.TabIndex = 3;
             this.btnStart.Text = "Start";
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            // 
-            // btnPhoto
-            // 
-            this.btnPhoto.Location = new System.Drawing.Point(339, 65);
-            this.btnPhoto.Name = "btnPhoto";
-            this.btnPhoto.Size = new System.Drawing.Size(75, 23);
-            this.btnPhoto.TabIndex = 4;
-            this.btnPhoto.Text = "Photo";
-            this.btnPhoto.UseVisualStyleBackColor = true;
-            this.btnPhoto.Click += new System.EventHandler(this.btnPhoto_Click);
             // 
             // localipLabel
             // 
@@ -101,7 +93,7 @@
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(339, 14);
+            this.btnConnect.Location = new System.Drawing.Point(284, 14);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(75, 23);
             this.btnConnect.TabIndex = 6;
@@ -123,15 +115,34 @@
             this.S_timer.Interval = 1000;
             this.S_timer.Tick += new System.EventHandler(this.S_timer_Tick);
             // 
+            // micListBox
+            // 
+            this.micListBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.micListBox.FormattingEnabled = true;
+            this.micListBox.Location = new System.Drawing.Point(241, 42);
+            this.micListBox.Name = "micListBox";
+            this.micListBox.Size = new System.Drawing.Size(200, 20);
+            this.micListBox.TabIndex = 8;
+            // 
+            // soundCodecBox
+            // 
+            this.soundCodecBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.soundCodecBox.FormattingEnabled = true;
+            this.soundCodecBox.Location = new System.Drawing.Point(241, 68);
+            this.soundCodecBox.Name = "soundCodecBox";
+            this.soundCodecBox.Size = new System.Drawing.Size(200, 20);
+            this.soundCodecBox.TabIndex = 9;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(464, 401);
+            this.Controls.Add(this.soundCodecBox);
+            this.Controls.Add(this.micListBox);
             this.Controls.Add(this.speedLabel);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.localipLabel);
-            this.Controls.Add(this.btnPhoto);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.modeListBox);
@@ -152,11 +163,12 @@
         private System.Windows.Forms.ComboBox modeListBox;
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.Button btnStart;
-        private System.Windows.Forms.Button btnPhoto;
         private System.Windows.Forms.Label localipLabel;
         public System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Label speedLabel;
         private System.Windows.Forms.Timer S_timer;
+        private System.Windows.Forms.ComboBox micListBox;
+        private System.Windows.Forms.ComboBox soundCodecBox;
     }
 }
 

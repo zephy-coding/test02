@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
+using System.Drawing;
 
 namespace HttpTest01
 {
@@ -24,8 +25,8 @@ namespace HttpTest01
         private void Form1_Load(object sender, EventArgs e)
         {
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            
-
+            Graphics a = this.CreateGraphics();
+            a.DrawEllipse(Pens.Red, 10, 10, 30, 30);
         }
 
         private void btnConfirm_Click(object sender, EventArgs e)
