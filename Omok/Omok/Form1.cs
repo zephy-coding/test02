@@ -24,7 +24,6 @@ namespace Omok
         {
             InitializeComponent();
         }
-
         private void Form1_Load(object sender, EventArgs e)
         {
             whiteStone = Image.FromFile("res\\white-go-stone32.png");
