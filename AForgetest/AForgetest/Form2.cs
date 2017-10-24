@@ -25,8 +25,14 @@ namespace AForgetest
                     info.remoteEP = new IPEndPoint(IPAddress.Parse(iptextBox.Text), info.recvPORT);
                 else
                     info.remoteEP.Address = IPAddress.Parse(iptextBox.Text);
+                if (info.remoteVoiceEP == null)
+                    info.remoteVoiceEP = new IPEndPoint(IPAddress.Parse(iptextBox.Text), info.recvVoicePORT);
+                else
+                    info.remoteVoiceEP.Address = IPAddress.Parse(iptextBox.Text);
+                
                 TcpClient respSend_socket = new TcpClient(new IPEndPoint(IPAddress.Parse(MainForm.GetLocalIPAddress()), 0));
-                if(respSend_socket.ConnectAsync(IPAddress.Parse(iptextBox.Text), info.respPORT).Wait(2000))
+                
+                if (respSend_socket.ConnectAsync(IPAddress.Parse(iptextBox.Text), info.respPORT).Wait(2000))
                 {
                     this.MainForm.btnConnect.BackColor = Color.LightPink;
                     this.MainForm.btnConnect.Text = "연결됨";
@@ -34,13 +40,17 @@ namespace AForgetest
                     Close();
                 }
                 respSend_socket.Close();
-
             }
-            catch(FormatException ee)
+            
+            catch(AggregateException ff)
+            {
+                MessageBox.Show(ff.Message);
+            }
+            catch (FormatException ee)
             {
                 MessageBox.Show(ee.Message);
             }
-        } 
+        }
         public Form2()
         {
             InitializeComponent();
@@ -53,15 +63,19 @@ namespace AForgetest
 
         private void Form2_FormClosed(object sender, FormClosedEventArgs e)
         {
-            MainForm.isForm2_opened = false;
+            
+
         }
     }
     public class info
     {
         public static readonly int respPORT = 6788;
         public static readonly int recvPORT = 6789;
+        public static readonly int recvVoicePORT = 6790;
         public static IPEndPoint remoteEP;
+        public static IPEndPoint remoteVoiceEP;
         public static UdpClient sending_Socket = new UdpClient();
+        public static UdpClient voiceSend_Socket = new UdpClient();
         public static TcpClient respSend_Socket;
     }
 }

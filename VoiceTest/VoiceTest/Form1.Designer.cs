@@ -42,7 +42,7 @@
             this.btn_Rec.TabIndex = 0;
             this.btn_Rec.UseVisualStyleBackColor = true;
             this.btn_Rec.Click += new System.EventHandler(this.btn_Rec_Click);
-            this.btn_Rec.Paint += new System.Windows.Forms.PaintEventHandler(this.btn_Rec_Paint);
+            //this.btn_Rec.Paint += new System.Windows.Forms.PaintEventHandler(this.btn_Rec_Paint);
             // 
             // btn_Stop
             // 
@@ -52,7 +52,7 @@
             this.btn_Stop.TabIndex = 1;
             this.btn_Stop.UseVisualStyleBackColor = true;
             this.btn_Stop.Click += new System.EventHandler(this.btn_Stop_Click);
-            this.btn_Stop.Paint += new System.Windows.Forms.PaintEventHandler(this.btn_Stop_Paint);
+            //this.btn_Stop.Paint += new System.Windows.Forms.PaintEventHandler(this.btn_Stop_Paint);
             // 
             // comboBoxInputDevices
             // 

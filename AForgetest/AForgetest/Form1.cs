@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using System.Linq;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -13,7 +15,7 @@ using System.Threading;
 using System.Windows.Forms;
 using AForge.Video.DirectShow;
 using AForge.Video;
-
+using NAudio.Wave;
 
 namespace AForgetest
 {
@@ -31,7 +33,15 @@ namespace AForgetest
         Thread recvThread;
         Thread tcpThread;
         UdpClient localSocket = new UdpClient(info.recvPORT);
+        UdpClient voiceLocalSocket = new UdpClient(info.recvVoicePORT);
         TcpListener tcpL = new TcpListener(new IPEndPoint(0, info.respPORT));
+
+        WaveIn waveIn = null;
+        BufferedWaveProvider provider = null;
+        WaveOut waveOut = null;
+        INetworkChatCodec selectedCodec, playCodec;
+        [ImportMany(typeof(INetworkChatCodec))]
+        public IEnumerable<INetworkChatCodec> Codecs { get; set; }
 
         public Form1()
         {
@@ -41,12 +51,77 @@ namespace AForgetest
         {
             localipLabel.Text += GetLocalIPAddress();
             createCamComboboxes();
-            webcamSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
+            createMicComboboxes();
             recvThread = new Thread(new ThreadStart(recvPacket));
             recvThread.Start();
             tcpThread = new Thread(new ThreadStart(tcpListen));
             tcpThread.Start();
+            ThreadPool.QueueUserWorkItem(voiceReceive);
             S_timer.Start();
+        }
+
+        private void voiceReceive(object state)
+        {
+            IPEndPoint remoteEPrecv = null;
+            while (true)
+            {
+                byte[] b = voiceLocalSocket.Receive(ref remoteEPrecv);
+                if ((b.Length == 1) && (b[0] == 127))
+                {
+                    byte[] b2 = voiceLocalSocket.Receive(ref remoteEPrecv);
+                    playCodec = ((CodecComboItem)(soundCodecBox.Items[(int)b2[0]])).Codec;
+                    waveOut = new WaveOut();
+                    provider = new BufferedWaveProvider(playCodec.RecordFormat);
+                    waveOut.Init(provider);
+                    waveOut.Play();
+                }
+                byte[] decoded = playCodec.Decode(b, 0, b.Length);
+                provider.AddSamples(decoded, 0, decoded.Length);
+            }
+        }
+
+        void createMicComboboxes()
+        {
+            AggregateCatalog catalog = new AggregateCatalog();
+            catalog.Catalogs.Add(new AssemblyCatalog(typeof(INetworkChatCodec).Assembly));
+            CompositionContainer _container = new CompositionContainer(catalog);
+            _container.SatisfyImportsOnce(this);
+
+            for (int i = 0; i < WaveIn.DeviceCount; i++)
+            {
+                var tmp = WaveIn.GetCapabilities(i);
+                micListBox.Items.Add(tmp.ProductName);
+            }
+            if (micListBox.Items.Count > 0)
+            {
+                micListBox.SelectedIndex = 0;
+            }
+            PopulateCodecsCombo(Codecs);
+        }
+        private void PopulateCodecsCombo(IEnumerable<INetworkChatCodec> codecs)
+        {
+            var sorted = from codec in codecs
+                         where codec.IsAvailable
+                         orderby codec.BitsPerSecond ascending
+                         select codec;
+
+            foreach (var codec in codecs)
+            {
+                string bitRate = codec.BitsPerSecond == -1 ? "VBR" : String.Format("{0:0.#}kbps", codec.BitsPerSecond / 1000.0);
+                string text = String.Format("{0} ({1})", codec.Name, bitRate);
+                soundCodecBox.Items.Add(new CodecComboItem { Text = text, Codec = codec });
+            }
+            soundCodecBox.SelectedIndex = 0;
+        }
+        
+        class CodecComboItem
+        {
+            public string Text { get; set; }
+            public INetworkChatCodec Codec { get; set; }
+            public override string ToString()
+            {
+                return Text;
+            }
         }
         void createCamComboboxes()
         {
@@ -59,6 +134,7 @@ namespace AForgetest
             {
                 camListBox.SelectedIndex = 0;
                 webcamSource = new VideoCaptureDevice(videoDevices[camListBox.SelectedIndex].MonikerString);
+                webcamSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
                 foreach (var capability in webcamSource.VideoCapabilities)
                 {
                     modeListBox.Items.Add(capability.FrameSize.ToString() + ":" + capability.MaximumFrameRate.ToString() + ":" + capability.BitCount.ToString());
@@ -92,6 +168,7 @@ namespace AForgetest
                     this.pictureBox.Height = 250;
                     this.pictureBox.Left = 24;
                     changer_trigger = false;
+                    codecInfoNeed = true;
                 }
                 else
                 {
@@ -136,7 +213,7 @@ namespace AForgetest
             }
             changer_trigger = true;
         }
-        int cnt = 0;
+        
         void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             //pictureBox.Image = (Image)eventArgs.Frame.Clone();
@@ -149,7 +226,7 @@ namespace AForgetest
             byte[] buff = new byte[ms.Length];
             ms.Read(buff, 0, buff.Length);
             sendedPackets += (double)buff.Length;
-            cnt += info.sending_Socket.Send(buff, buff.Length, info.remoteEP);
+            info.sending_Socket.Send(buff, buff.Length, info.remoteEP);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -193,12 +270,44 @@ namespace AForgetest
                 btnStart.Text = "Start";
                 changer_trigger = false;
                 stopMsgSend();
+
+                waveIn.DataAvailable -= waveSource_DataAvailable;
+                waveIn.StopRecording();
+                waveIn = null;
+                provider = null;
                 return;
             }
             webcamSource.VideoResolution = webcamSource.VideoCapabilities[modeListBox.SelectedIndex];
             webcamSource.Start();
+
+            waveIn = new WaveIn();
+            waveIn.DeviceNumber = micListBox.SelectedIndex;
+            selectedCodec = ((CodecComboItem)soundCodecBox.SelectedItem).Codec;
+            waveIn.WaveFormat = selectedCodec.RecordFormat;
+            waveIn.BufferMilliseconds = 50;
+            waveIn.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
+            waveIn.StartRecording();
+
             isRunning = true;
             btnStart.Text = "Stop";
+        }
+        bool codecInfoNeed = true;
+        void waveSource_DataAvailable(object sender, WaveInEventArgs e)
+        {
+            if (codecInfoNeed)
+            {
+                byte[] buff2 = new byte[1];
+                buff2[0] = 127;
+                info.voiceSend_Socket.Send(buff2, buff2.Length, info.remoteVoiceEP);
+
+                byte[] buff = new byte[1];
+                buff[0] = (byte)soundCodecBox.SelectedIndex;
+                info.voiceSend_Socket.Send(buff, buff.Length, info.remoteVoiceEP);
+                codecInfoNeed = false;
+            }
+
+            byte[] encoded = selectedCodec.Encode(e.Buffer, 0, e.BytesRecorded);
+            info.voiceSend_Socket.Send(encoded, encoded.Length, info.remoteVoiceEP);
         }
 
         public string GetLocalIPAddress()
@@ -213,20 +322,15 @@ namespace AForgetest
             }
             throw new Exception("Local IP Address Not Found!");
         }
-        public bool isForm2_opened = false;
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if(isForm2_opened == false)
-            { 
-                Form2 connect_Form = new Form2(this);
-                connect_Form.Show();
-                isForm2_opened = true;
-            }
+            Form2 connect_Form = new Form2(this);
+            connect_Form.ShowDialog();
         }
         
         private void S_timer_Tick(object sender, EventArgs e)
         {
-            speedLabel.Text = "Sending Speed : " + Math.Round((sendedPackets / 1024.0),2).ToString() + " kbyte/s ";
+            speedLabel.Text = "Sending Speed : " + Math.Round((sendedPackets / 1024.0), 2).ToString() + " kbyte/s ";
             speedLabel.Text += "Receiving Speed : " + Math.Round((recvedPackets / 1024.0), 2).ToString() + " kbyte/s";
             sendedPackets = 0;
             recvedPackets = 0;

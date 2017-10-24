@@ -34,6 +34,7 @@ namespace VoiceTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            
             AggregateCatalog catalog = new AggregateCatalog();
             catalog.Catalogs.Add(new AssemblyCatalog(typeof(INetworkChatCodec).Assembly));
             CompositionContainer _container = new CompositionContainer(catalog);
@@ -79,20 +80,22 @@ namespace VoiceTest
         {
             Graphics a = e.Graphics;
             a.FillEllipse(Brushes.Red, 14, 14, 16, 16);
+            
         }
         private void btn_Stop_Paint(object sender, PaintEventArgs e)
         {
             Graphics a = e.Graphics;
             a.FillRectangle(Brushes.DarkGray, 14, 14, 16, 16);
+            
         }
 
         private void btn_Rec_Click(object sender, EventArgs e)
         {
             if (waveIn != null)
                 return;
+            waveIn = new WaveIn(this.Handle);
             waveIn.DeviceNumber = comboBoxInputDevices.SelectedIndex;
             selectedCodec = ((CodecComboItem)comboBoxCodecs.SelectedItem).Codec;
-            waveIn = new WaveIn(this.Handle);
             waveIn.WaveFormat = selectedCodec.RecordFormat;
             waveIn.BufferMilliseconds = 50;
             waveIn.RecordingStopped += waveIn_RecordingStopped;
@@ -110,16 +113,20 @@ namespace VoiceTest
         private void btn_Stop_Click(object sender, EventArgs e)
         {
             if (waveIn != null)
+            {
+                waveIn.DataAvailable -= waveSource_DataAvailable;
                 waveIn.StopRecording();
+                waveIn.Dispose();
+                waveIn = null;
+            }
         }
-        int cnt = 0;
+        
         void waveSource_DataAvailable(object sender, WaveInEventArgs e)
         {
             if(provider != null)
             {
                 byte[] encoded = selectedCodec.Encode(e.Buffer, 0, e.BytesRecorded);
-                cnt += e.BytesRecorded;
-                Text = cnt.ToString();
+                
             }
         }
         void waveIn_RecordingStopped(object sender, EventArgs e)
@@ -130,8 +137,7 @@ namespace VoiceTest
             }
             if(waveIn != null)
             {
-                waveIn.Dispose();
-                waveIn = null;
+                
             }
             provider = null;
         }

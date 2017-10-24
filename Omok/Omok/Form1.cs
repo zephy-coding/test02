@@ -15,10 +15,10 @@ namespace Omok
         List<double> coord = new List<double>();
         bool isBlackturn = true;
         Stack<PictureBox> stone_Stack = new Stack<PictureBox>();
-        Image whiteStone = Image.FromFile("resourse\\white-go-stone32.png");
-        Image blackStone = Image.FromFile("resourse\\black-go-stone32.png");
-        Image whiteTurn = Image.FromFile("resourse\\white-go-stone48.png");
-        Image blackTurn = Image.FromFile("resourse\\black-go-stone48.png");
+        Image whiteStone;
+        Image blackStone;
+        Image whiteTurn;
+        Image blackTurn;
         Cursor white_cursor, black_cursor;
         public Form1()
         {
@@ -27,7 +27,11 @@ namespace Omok
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            for(int k = 0; k <19; k++)
+            whiteStone = Image.FromFile("res\\white-go-stone32.png");
+            blackStone = Image.FromFile("res\\black-go-stone32.png");
+            whiteTurn = Image.FromFile("res\\white-go-stone48.png");
+            blackTurn = Image.FromFile("res\\black-go-stone48.png");
+            for (int k = 0; k <19; k++)
             {
                 coord.Add(23.0 + ((755.0 - 23.0) / 18.0)*(double)k);
             }

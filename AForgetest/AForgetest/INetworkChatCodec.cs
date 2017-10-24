@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using System.Runtime.Serialization;
 
 namespace AForgetest
 {

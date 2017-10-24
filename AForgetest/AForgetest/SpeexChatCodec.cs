@@ -18,7 +18,7 @@ namespace AForgetest
 
         }
     }
-
+    
     [Export(typeof(INetworkChatCodec))]
     class WideBandSpeexCodec : SpeexChatCodec
     {
@@ -28,7 +28,7 @@ namespace AForgetest
 
         }
     }
-
+    
     [Export(typeof(INetworkChatCodec))]
     class UltraWideBandSpeexCodec : SpeexChatCodec
     {
@@ -38,7 +38,7 @@ namespace AForgetest
 
         }
     }
-
+    
     class SpeexChatCodec : INetworkChatCodec
     {
         private readonly WaveFormat recordingFormat;
